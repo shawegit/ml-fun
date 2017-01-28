@@ -14,6 +14,14 @@ from keras.layers import Dropout, Dense, Flatten
 from keras.layers.convolutional import Convolution2D
 from keras.layers.convolutional import MaxPooling2D
 from keras.utils import np_utils
+from itertools import chain
+
+
+def get_all_pngs(dir_):
+    from os import listdir
+    from os.path import isfile, join
+    return (dir_ + f for f in listdir(dir_) if isfile(join(dir_, f)))
+
 
 def create_model():
     nn = Sequential()
@@ -36,6 +44,7 @@ def create_model():
     nn.add(Convolution2D(2, 1, 1, border_mode='valid', activation='sigmoid'))
     nn.compile(optimizer='sgd', loss='mse', metrics=['accuracy'])
     return nn
+
 
 def create_image(file_name, name, root_dir, sz=99):
     with open(file_name + ".csv") as f:
@@ -251,7 +260,7 @@ if __name__ == '__main__':
     sz = 7
     img_border = sz // 2
     image_dir = 'C:\\Users\\Shawe\\Downloads\\Images'
-    #create_all_no_mitosis(image_dir)
+    # create_all_no_mitosis(image_dir)
     train_model = 10
     if train_model == 0:
         model = joblib.load('model_l1_bal_3.pkl')
@@ -281,27 +290,11 @@ if __name__ == '__main__':
         plt.imshow(gt_mask)
         plt.show()
     else:
-        print("HELLO")
-        # Biggest side == 95
-        # Take 99 as side length
-        # 98 images
-        # 646 mitosis
-        #create_new_set(image_dir)
-        #data = np.array([np.random.rand(99,99,3) for i in range(10000)],dtype=np.float32)
-
-        #lables = np.random.rand(10000) > .5
-        #lables  = np.concatenate((lables,~lables))
-        #lables.shape = 10000,1,1,2
-
-
+        n_mito = len(list(get_all_pngs(image_dir + '\\mitosis')))
+        data = np.array([cv2.imread(f) for f in
+                         chain(get_all_pngs(image_dir + '\\mitosis\\'), get_all_pngs(image_dir + '\\no_mitosis\\'))])
+        labels = np.zeros((len(data), 1, 1, 2))
+        labels[..., :n_mito] = 1
         mm = create_model()
-        #mm.fit(data, lables, nb_epoch=10, batch_size=200, verbose=2)
+        mm.fit(data, labels, nb_epoch=10, batch_size=200, verbose=2)
         mm.summary()
-        # train(linear_model.LogisticRegression, "LOG REG l1 ", penalty='l1', class_weight='balanced')
-# train(linear_model.LogisticRegressionCV, "LOG REG l2 CV", penalty='l2', class_weight='balanced')
-# train(linear_model.LogisticRegressionCV, "LOG REG l1 CV", penalty='l1', class_weight='balanced', solver='liblinear')
-# train(svm.LinearSVC, "LinearSVC l1 ", penalty='l1', loss='squared_hinge', dual=False, class_weight='balanced')
-# train(svm.LinearSVC, "LinearSVC l2 ", penalty='l2', dual=False, class_weight='balanced')
-# train(linear_model.Perceptron, "Perceptron l2 ", penalty='l2', n_iter=30, class_weight='balanced')
-# train(linear_model.Perceptron, "Perceptron l1 ", penalty='l1', n_iter=30, class_weight='balanced')
-# train(GradientBoostingClassifier, "GradientBoostingClassifier ", n_estimators=100, random_state=0)
