@@ -10,7 +10,7 @@ from sklearn.neural_network import MLPClassifier
 
 div = 1
 from keras.models import Sequential
-from keras.layers import Dropout, Dense, Flatten
+from keras.layers import Dropout, Dense, Flatten, Activation
 from keras.layers.convolutional import Convolution2D
 from keras.layers.convolutional import MaxPooling2D
 from keras.utils import np_utils
@@ -25,24 +25,92 @@ def get_all_pngs(dir_):
 
 def create_model():
     nn = Sequential()
-    nn.add(Convolution2D(50, 5, 5, border_mode='valid', input_shape=(99, 99, 3), activation='relu'))
+    nn.add(Convolution2D(40, 5, 5, border_mode='valid', input_shape=(None, None, 3), activation='relu'))
     # 99 - 4 99 -4 7*7*2 = 95, 95, 98
-    nn.add(MaxPooling2D(pool_size=(2, 2)))
+    nn.add(MaxPooling2D(pool_size=(3, 3)))
     # 99 - 6 99 -6 7*7*2 = 47, 47, 98
-    nn.add(Convolution2D(50, 1, 1, border_mode='valid', activation='relu'))
-    nn.add(MaxPooling2D(pool_size=(2, 2)))
     # 46, 46, 49
-    nn.add(Dropout(0.2))
-    nn.add(Convolution2D(100, 5, 5, border_mode='valid', activation='relu'))
+    nn.add(Convolution2D(32, 3, 3, border_mode='valid', activation='relu'))
     #  40, 40, 100
     nn.add(MaxPooling2D(pool_size=(2, 2)))
-    # 20, 20, 100
-    nn.add(Convolution2D(200, 1, 1, border_mode='valid', activation='relu'))
+
+    nn.add(Convolution2D(32, 3, 3, border_mode='valid', activation='relu'))
+    #  40, 40, 100
     nn.add(MaxPooling2D(pool_size=(2, 2)))
+
+    nn.add(Convolution2D(32, 3, 3, border_mode='valid', activation='relu'))
+    nn.add(MaxPooling2D(pool_size=(2, 2)))
+    nn.add(Dropout(0.25))
+    # 20, 20, 100
     # 10, 10, 100
-    nn.add(Convolution2D(1000, 4, 4, border_mode='valid', activation='relu'))
-    nn.add(Convolution2D(2, 1, 1, border_mode='valid', activation='sigmoid'))
-    nn.compile(optimizer='sgd', loss='mse', metrics=['accuracy'])
+    nn.add(Convolution2D(100, 2, 2, border_mode='valid', activation='relu'))
+    nn.add(Convolution2D(2, 1, 1, border_mode='valid'))
+
+    # nn.add(Flatten())
+
+    nn.add(Activation('sigmoid'))
+    nn.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy', 'recall', 'precision'])
+    return nn
+
+
+def create_model3():
+    nn = Sequential()
+    nn.add(Convolution2D(40, 5, 5, border_mode='valid', input_shape=(None, None, 3), activation='relu'))
+    # 99 - 4 99 -4 7*7*2 = 95, 95, 98
+    nn.add(MaxPooling2D(pool_size=(3, 3)))
+    # 99 - 6 99 -6 7*7*2 = 47, 47, 98
+    # 46, 46, 49
+    nn.add(Convolution2D(32, 3, 3, border_mode='valid', activation='relu'))
+    #  40, 40, 100
+    nn.add(MaxPooling2D(pool_size=(2, 2)))
+
+    nn.add(Convolution2D(32, 3, 3, border_mode='valid', activation='relu'))
+    #  40, 40, 100
+    nn.add(MaxPooling2D(pool_size=(2, 2)))
+
+    nn.add(Convolution2D(32, 3, 3, border_mode='valid', activation='relu'))
+    nn.add(MaxPooling2D(pool_size=(2, 2)))
+    nn.add(Dropout(0.25))
+    # 20, 20, 100
+    # 10, 10, 100
+    nn.add(Convolution2D(400, 2, 2, border_mode='valid', activation='relu'))
+    nn.add(Convolution2D(2, 1, 1, border_mode='valid'))
+
+    # nn.add(Flatten())
+
+    nn.add(Activation('sigmoid'))
+    nn.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy', 'recall', 'precision'])
+    return nn
+
+
+def create_model_2():
+    nn = Sequential()
+    nn.add(Convolution2D(40, 5, 5, border_mode='valid', input_shape=(None, None, 3), activation='relu'))
+    # 99 - 4 99 -4 7*7*2 = 95, 95, 98
+    nn.add(MaxPooling2D(pool_size=(3, 3)))
+    # 99 - 6 99 -6 7*7*2 = 47, 47, 98
+    # 46, 46, 49
+    nn.add(Convolution2D(32, 3, 3, border_mode='valid', activation='relu'))
+    nn.add(Convolution2D(32, 1, 1, border_mode='valid'))
+    #  40, 40, 100
+    nn.add(MaxPooling2D(pool_size=(2, 2)))
+
+    nn.add(Convolution2D(32, 3, 3, border_mode='valid', activation='relu'))
+    #  40, 40, 100
+    nn.add(MaxPooling2D(pool_size=(2, 2)))
+
+    nn.add(Convolution2D(32, 3, 3, border_mode='valid', activation='relu'))
+    nn.add(MaxPooling2D(pool_size=(2, 2)))
+    nn.add(Dropout(0.25))
+    # 20, 20, 100
+    # 10, 10, 100
+    nn.add(Convolution2D(300, 2, 2, border_mode='valid', activation='relu'))
+    nn.add(Convolution2D(2, 1, 1, border_mode='valid'))
+
+    # nn.add(Flatten())
+
+    nn.add(Activation('sigmoid'))
+    nn.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy', 'recall', 'precision'])
     return nn
 
 
@@ -89,19 +157,32 @@ def create_no_mitosis(file_name, counter, root_dir, model):
     image_data = create_final_image(image, img_border)
     mask_shape = image_data.shape[:-1]
     image_data.shape = -1, image_data.shape[-1]
+
     mask = model.predict_proba(image_data)[:, 1]
     mask.shape = mask_shape
     mask = cv2.GaussianBlur(mask, (5, 5), 1) > .95
     mask = cv2.morphologyEx(mask.astype('uint8'), cv2.MORPH_OPEN, np.ones((5, 5), np.uint8))
+
+    rand_mask = np.zeros(mask_shape, dtype=np.uint8)
+    rand_mask.shape = rand_mask.size
+    idx = list(range(rand_mask.size))
+    np.random.shuffle(idx)
+    rand_mask[idx[0:1000]] = 1
+    rand_mask.shape = mask_shape
+    rand_mask = cv2.dilate(rand_mask, np.ones((3, 3)))
+
+    mask = (mask + rand_mask) > 0
     gt_mask = create_mask(mask_shape, file_name)
+
+    gt_mask = cv2.dilate(gt_mask.astype('uint8'), np.ones((50, 50)))
     mask[gt_mask == 1] = 0
-    output = cv2.connectedComponentsWithStats(mask, 8, cv2.CV_32S)
+    output = cv2.connectedComponentsWithStats(mask.astype('uint8'), 8, cv2.CV_32S)
     xy = output[3][1:, :].astype(int)
     hlf = 99 // 2
     image = np.pad(image, [(hlf, hlf), (hlf, hlf), (0, 0)], 'reflect')
     for corner in xy:
         cv2.imwrite('{}\\no_mitosis\\{:05d}.png'.format(root_dir, counter),
-                    image[corner[1]:corner[1] + 99, corner[1]:corner[1] + 99, ::-1])
+                    image[corner[1]:corner[1] + 99, corner[0]:corner[0] + 99, ::-1])
         counter += 1
     return counter
 
@@ -109,7 +190,7 @@ def create_no_mitosis(file_name, counter, root_dir, model):
 def create_all_no_mitosis(root_dir):
     counter = 0
     model = joblib.load('model_l1_bal_3.pkl')
-    for file_name in file_names(root_dir):
+    for file_name in file_names('C:\\Users\\Obivion\\Downloads\\Images'):
         try:
             counter = create_no_mitosis(file_name, counter, root_dir, model)
         except Exception as e:
@@ -239,13 +320,6 @@ def train_the_model(rootdir, border, model=None):
             pass
         return clf
 
-    # scaler = StandardScaler()
-    # scaler = scaler.fit(training)
-    # joblib.dump(scaler, 'scaler.pkl')
-    # training = scaler.transform(training)
-    # model_ = train(linear_model.LogisticRegression, "LOG REG l1 ", penalty='l2', class_weight='balanced')
-    # joblib.dump(model_, 'model_l1_bal_{}.pkl'.format(3 if model is None else 4))
-
     model_nn = train(MLPClassifier, "Neural Net ", hidden_layer_sizes=(100, 100, 50, 2))
     joblib.dump(model_nn, 'model_nn6.pkl'.format(border))
 
@@ -259,9 +333,10 @@ if __name__ == '__main__':
     np.random.seed(43)
     sz = 7
     img_border = sz // 2
-    image_dir = 'C:\\Users\\Shawe\\Downloads\\Images'
-    # create_all_no_mitosis(image_dir)
-    train_model = 10
+    image_dir = 'C:\\Users\\Obivion\\Simon\\ml-fun\\Images'
+    #    create_all_no_mitosis(image_dir)
+
+    train_model = 2
     if train_model == 0:
         model = joblib.load('model_l1_bal_3.pkl')
         train_the_model(image_dir, img_border, model)
@@ -289,12 +364,51 @@ if __name__ == '__main__':
         plt.subplot(122)
         plt.imshow(gt_mask)
         plt.show()
-    else:
+    elif train_model == 2:
+
+        mm2 = create_model_2()
+        mm2.summary()
+
+        mm3 = create_model3()
+        mm3.summary()
         n_mito = len(list(get_all_pngs(image_dir + '\\mitosis')))
         data = np.array([cv2.imread(f) for f in
                          chain(get_all_pngs(image_dir + '\\mitosis\\'), get_all_pngs(image_dir + '\\no_mitosis\\'))])
-        labels = np.zeros((len(data), 1, 1, 2))
-        labels[..., :n_mito] = 1
-        mm = create_model()
-        mm.fit(data, labels, nb_epoch=10, batch_size=200, verbose=2)
-        mm.summary()
+
+        labels = np.zeros(len(data), dtype=np.uint8)
+        labels[:n_mito] = 1
+        idx = list(range(len(data)))
+        np.random.shuffle(idx)
+        labels = labels[idx]
+        labels = np_utils.to_categorical(labels)
+        print(data.shape)
+        data = (data[idx] / 255.).astype(np.float32)
+        print(data.shape)
+        labels.shape = len(data), 1, 1, 2
+
+        mm2.fit(data, labels, nb_epoch=10, batch_size=100, verbose=1)
+        mm2.save('deep_cnn222.h5')
+
+        mm3.fit(data, labels, nb_epoch=10, batch_size=100, verbose=1)
+        mm3.save('deep_cnn333.h5')
+    else:
+        from keras.models import load_model
+
+        mm = load_model('deep_cnn11.h5')
+        mito = list(get_all_pngs(image_dir + '\\mitosis\\'))
+        no_mito = list(get_all_pngs(image_dir + '\\no_mitosis\\'))
+        image = cv2.imread(image_dir + "\\test\\H03_00.png") / 255.
+        image.shape = 1, *image.shape
+        res = mm.predict_proba(image.astype(np.float32))
+        oo = mm.predict_classes(image.astype(np.float32))
+        print(oo.shape)
+        res.shape = res.shape[1], res.shape[2], res.shape[3]
+        oo.shape = oo.shape[1], oo.shape[2]
+
+        plt.subplot(131)
+        plt.imshow(res[:, :, 0] > .5)
+        plt.subplot(132)
+        plt.imshow(res[:, :, 1] > .5)
+        plt.subplot(133)
+        plt.imshow(oo)
+        plt.show()
